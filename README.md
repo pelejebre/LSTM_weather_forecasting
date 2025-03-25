@@ -74,12 +74,10 @@ cd forecasting-lstm
 
 Instalar Dependencias
 ```
-bash
 pip install -r requirements.txt
 ```
 Ejecutar el Notebook oportuno
 ```
-bash
 jupyter notebook ______.ipynb
 ```
 
@@ -94,4 +92,5 @@ Las contribuciones son bienvenidas. Si deseas colaborar:
 
 ### 📄 Referencias
 📚 Hochreiter, S., & Schmidhuber, J. (1997). [Long Short-Term Memory](https://www.researchgate.net/publication/13853244_Long_Short-Term_Memory).
+
 📊 Instituto Planck para Biogeoquímica. [Max Planck Weather Dataset](https://www.kaggle.com/datasets/arashnic/max-planck-weather-dataset)
