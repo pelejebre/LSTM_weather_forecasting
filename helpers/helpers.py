@@ -191,3 +191,58 @@ def accuracy_threshold(y_pred, y_true, threshold=0.1):
     accuracy = within_threshold / len(y_true)
     
     return accuracy
+
+
+def eval_rmse(model, x, y):
+    model.eval()
+    with torch.no_grad():
+        pred = model(x)
+        mse = mse_loss(pred, y)
+        rmse = torch.sqrt(mse)
+    return rmse.item()
+
+
+def predictions(x, model, scaler, device=None):
+    '''Genera la predicción de OUTPUT_LENGTH instantes
+    de tiempo a futuro con el modelo entrenado.
+
+    Entrada:
+    - x: batch (o batches) de datos para ingresar al modelo
+        (tamaño: BATCHES X INPUT_LENGTH X FEATURES)
+    - model: Red LSTM entrenada
+    - scaler: escalador (requerido para llevar la predicción a la escala original)
+    - device: dispositivo donde ejecutar el modelo (cpu o cuda)
+
+    Salida:
+    - y_pred: la predicción en la escala original (tamaño: BATCHES X OUTPUT_LENGTH)
+    '''
+    # Si no se especifica dispositivo, usar CPU
+    if device is None:
+        device = torch.device('cpu')
+    
+    # Convertir a tensor de PyTorch si aún no lo es
+    if not isinstance(x, torch.Tensor):
+        x = torch.tensor(x, dtype=torch.float32).to(device)
+    else:
+        x = x.to(device)
+    
+    # Modo evaluación y no calcular gradientes para inferencia
+    model.eval()
+    with torch.no_grad():
+        # Calcular predicción escalada en el rango usado para entrenar
+        y_pred_s = model(x)
+        
+        # Convertir a numpy para usar con scaler
+        y_pred_s = y_pred_s.cpu().numpy()
+        
+        # Reshape para que sea un array 2D (samples, features)
+        original_shape = y_pred_s.shape
+        y_pred_s_reshaped = y_pred_s.reshape(-1, original_shape[-1])
+        
+        # Llevar la predicción a la escala original
+        y_pred_inverse = scaler.inverse_transform(y_pred_s_reshaped)
+        
+        # Restaurar la forma original si es necesario
+        y_pred = y_pred_inverse.reshape(original_shape)
+    
+    return y_pred.flatten()

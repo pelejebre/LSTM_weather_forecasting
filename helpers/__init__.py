@@ -4,6 +4,8 @@ from .helpers import scale_data
 from .helpers import root_mean_squared_error
 from .helpers import r_squared
 from .helpers import accuracy_threshold
+from .helpers import eval_rmse
+from .helpers import predictions
 
 # Si quieres definir qué funciones se exportan con 'from helpers import *'
 __all__ = ['train_val_test_split',
@@ -11,4 +13,6 @@ __all__ = ['train_val_test_split',
            'scale_data',
            'root_mean_squared_error',
            'r_squared',
-           'accuracy_threshold']
+           'accuracy_threshold',
+           'eval_rmse',
+           'predictions']
