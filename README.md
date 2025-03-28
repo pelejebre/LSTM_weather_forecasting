@@ -57,17 +57,17 @@ pip install -r requirements.txt
 4. **`02.LSTM_univariado_unistep.ipynb`**
    
    • Implementa un modelo LSTM para una predicción univariable (Temperatura) con predicción unipaso (1 hora después)
+   ![Modelo](images/Diagrama_univariable_unistep.png "Modelo univariable y unistep")
 
 
-### 📊 Datos Utilizados
+## 📊 Datos Utilizados
 
 - **Fuente:** [Instituto Planck para Biogeoquímica](https://www.kaggle.com/datasets/arashnic/max-planck-weather-dataset)
 
 
-### 🚀 Requisitos e Instalación
+## 🚀 Requisitos e Instalación
 Clonar el Repositorio
 ```
-bash
 git clone https://github.com/tu-usuario/forecasting-lstm.git
 cd forecasting-lstm
 ```
@@ -81,7 +81,7 @@ Ejecutar el Notebook oportuno
 jupyter notebook ______.ipynb
 ```
 
-### 🤝 Contribuciones
+## 🤝 Contribuciones
 Las contribuciones son bienvenidas. Si deseas colaborar:
 
 1️⃣ Haz un fork del repositorio.
@@ -90,7 +90,8 @@ Las contribuciones son bienvenidas. Si deseas colaborar:
 
 3️⃣ Envía un pull request para revisión.
 
-### 📄 Referencias
+
+## 📄 Referencias
 📚 Hochreiter, S., & Schmidhuber, J. (1997). [Long Short-Term Memory](https://www.researchgate.net/publication/13853244_Long_Short-Term_Memory).
 
 📊 Instituto Planck para Biogeoquímica. [Max Planck Weather Dataset](https://www.kaggle.com/datasets/arashnic/max-planck-weather-dataset)
