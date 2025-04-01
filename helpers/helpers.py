@@ -42,6 +42,7 @@ def train_val_test_split(serie, tr_size=0.8, vl_size=0.1, ts_size=0.1):
 
 # Función para crear los lotes/secuencias de datos conforme a la longitud de la ventana
 # y a la longitud de la predicción
+'''
 def create_dataset_supervised(array, input_length, output_length):
     """
     Crea un conjunto de datos supervisado a partir de una serie temporal.
@@ -71,8 +72,34 @@ def create_dataset_supervised(array, input_length, output_length):
     y = np.array(y)
     
     return X, y
+'''
+def create_dataset_supervised(array, input_length, output_length, output_column_index):
+    """
+    Versión actualizada que permite especificar qué columna usar como salida
+    
+    Args:
+        array: arreglo numpy de tamaño N x features
+        input_length: longitud de la ventana de entrada
+        output_length: longitud de la ventana de salida
+        output_column_index: índice de la columna a predecir (por defecto: -1, última columna)
+    """
+    X, y = [], []
+    shape = array.shape
+    if len(shape) == 1:
+        fils, cols = array.shape[0], 1
+        array = array.reshape(fils, cols)
+    else:
+        fils, cols = array.shape 
+    
+    for i in range(fils-input_length-output_length):
+        X.append(array[i:i+input_length,0:cols])
+        # Ajustar la forma de y para que tenga la longitud de salida deseada
+        y.append(array[i+input_length:i+input_length+output_length,output_column_index].reshape(output_length,1))
+    
+    return np.array(X), np.array(y)
 
 # Función para escalar los datos de entrada y salida
+'''
 def scale_data(data_input):
     """
     Escala los datos utilizando MinMaxScaler.
@@ -84,8 +111,8 @@ def scale_data(data_input):
     Returns:
         data_scaled: diccionario con los datasets de entrada y salida escalados
         scaler: objeto MinMaxScaler utilizado para la transformación.
-    """
-    Nfeatures = data_input['x_tr'].shape[2]
+    """    
+    Nfeatures = data_input['x_tr'].shape[2]   # Número de features (columnas) en los datos de entrada
     
     # Generamos un listado de escaladores para cada feature
     scalers = [MinMaxScaler(feature_range=(-1, 1)) for i in range(Nfeatures)]
@@ -119,9 +146,12 @@ def scale_data(data_input):
     
     # Escalamos los datos de salida (y)
     # Lo mismo que antes, pero para los datos de salida
-    y_tr_flat = data_input['y_tr'][:, :, 0].reshape(-1, 1)
-    y_vl_flat = data_input['y_vl'][:, :, 0].reshape(-1, 1)
-    y_ts_flat = data_input['y_ts'][:, :, 0].reshape(-1, 1)
+    #y_tr_flat = data_input['y_tr'][:, :, 0].reshape(-1, 1)
+    #y_vl_flat = data_input['y_vl'][:, :, 0].reshape(-1, 1)
+    #y_ts_flat = data_input['y_ts'][:, :, 0].reshape(-1, 1)         
+    y_tr_flat = data_input['y_tr'][:, :, col_ref].reshape(-1, 1)
+    y_vl_flat = data_input['y_vl'][:, :, col_ref].reshape(-1, 1)
+    y_ts_flat = data_input['y_ts'][:, :, col_ref].reshape(-1, 1)
     
     combined_output = np.vstack([y_tr_flat, y_vl_flat, y_ts_flat])
     
@@ -130,9 +160,12 @@ def scale_data(data_input):
     output_scaler.fit(combined_output)
     
     # Escalamos cada conjunto por separado
-    y_tr_s[:, :, 0] = output_scaler.transform(y_tr_flat).reshape(data_input['y_tr'].shape[0], data_input['y_tr'].shape[1])
-    y_vl_s[:, :, 0] = output_scaler.transform(y_vl_flat).reshape(data_input['y_vl'].shape[0], data_input['y_vl'].shape[1])
-    y_ts_s[:, :, 0] = output_scaler.transform(y_ts_flat).reshape(data_input['y_ts'].shape[0], data_input['y_ts'].shape[1])
+    #y_tr_s[:, :, 0] = output_scaler.transform(y_tr_flat).reshape(data_input['y_tr'].shape[0], data_input['y_tr'].shape[1])
+    #y_vl_s[:, :, 0] = output_scaler.transform(y_vl_flat).reshape(data_input['y_vl'].shape[0], data_input['y_vl'].shape[1])
+    #y_ts_s[:, :, 0] = output_scaler.transform(y_ts_flat).reshape(data_input['y_ts'].shape[0], data_input['y_ts'].shape[1])
+    y_tr_s[:, :, col_ref] = output_scaler.transform(y_tr_flat).reshape(data_input['y_tr'].shape[0], data_input['y_tr'].shape[1])
+    y_vl_s[:, :, col_ref] = output_scaler.transform(y_vl_flat).reshape(data_input['y_vl'].shape[0], data_input['y_vl'].shape[1])
+    y_ts_s[:, :, col_ref] = output_scaler.transform(y_ts_flat).reshape(data_input['y_ts'].shape[0], data_input['y_ts'].shape[1])
     
     # Añadimos el escalador de salida a la lista de escaladores
     scalers.append(output_scaler)
@@ -144,8 +177,78 @@ def scale_data(data_input):
         'x_ts_s': x_ts_s, 'y_ts_s': y_ts_s,        
     }
     
-    return data_scaled, scalers[0]
-
+    return data_scaled, scalers[col_ref]    
+'''
+def scale_data(data_input):
+    """
+    Escala los datos utilizando MinMaxScaler.
+    
+    Args:
+        data_input: diccionario con los dataset de entrada y salida del modelo.
+            (data_input = {'x_tr': x_tr, 'y_tr': y_tr, 'x_vl': x_vl, 'y_vl': y_vl, 'x_ts': x_ts, 'y_ts': y_ts})        
+        
+    Returns:
+        data_scaled: diccionario con los datasets de entrada y salida escalados
+        output_scaler: objeto MinMaxScaler utilizado para la transformación de la salida
+    """    
+    Nfeatures = data_input['x_tr'].shape[2]   # Número de features en los datos de entrada
+    
+    # Generamos un listado de escaladores para cada feature
+    scalers = [MinMaxScaler(feature_range=(-1, 1)) for i in range(Nfeatures)]
+    
+    # Inicializamos los arreglos para los datos escalados
+    x_tr_s = np.zeros(data_input['x_tr'].shape)
+    x_vl_s = np.zeros(data_input['x_vl'].shape)
+    x_ts_s = np.zeros(data_input['x_ts'].shape)
+    y_tr_s = np.zeros(data_input['y_tr'].shape)
+    y_vl_s = np.zeros(data_input['y_vl'].shape)
+    y_ts_s = np.zeros(data_input['y_ts'].shape)
+        
+    # Escalamos los arreglos de entrada (X)
+    for i in range(Nfeatures):
+        # Combinar todos los datos de entrada para ajustar el escalador
+        # Primero aplanamos cada conjunto para poder concatenarlos
+        x_tr_flat = data_input['x_tr'][:, :, i].reshape(-1, 1)
+        x_vl_flat = data_input['x_vl'][:, :, i].reshape(-1, 1)
+        x_ts_flat = data_input['x_ts'][:, :, i].reshape(-1, 1)
+        
+        # Combinamos todos los datos
+        combined_data = np.vstack([x_tr_flat, x_vl_flat, x_ts_flat])
+        
+        # Ajustamos el escalador con todos los datos combinados
+        scalers[i].fit(combined_data)
+        
+        # Escalamos cada conjunto por separado
+        x_tr_s[:, :, i] = scalers[i].transform(x_tr_flat).reshape(data_input['x_tr'].shape[0], data_input['x_tr'].shape[1])
+        x_vl_s[:, :, i] = scalers[i].transform(x_vl_flat).reshape(data_input['x_vl'].shape[0], data_input['x_vl'].shape[1])
+        x_ts_s[:, :, i] = scalers[i].transform(x_ts_flat).reshape(data_input['x_ts'].shape[0], data_input['x_ts'].shape[1])
+    
+    # Escalamos los datos de salida (y)
+    # IMPORTANTE: Siempre usamos el índice 0 porque create_dataset_supervised 
+    # ya extrajo la columna que queremos predecir
+    y_tr_flat = data_input['y_tr'][:, :, 0].reshape(-1, 1)
+    y_vl_flat = data_input['y_vl'][:, :, 0].reshape(-1, 1)
+    y_ts_flat = data_input['y_ts'][:, :, 0].reshape(-1, 1)
+    
+    combined_output = np.vstack([y_tr_flat, y_vl_flat, y_ts_flat])
+    
+    # Creamos un escalador para la salida
+    output_scaler = MinMaxScaler(feature_range=(-1, 1))
+    output_scaler.fit(combined_output)
+    
+    # Escalamos cada conjunto por separado - siempre usando índice 0
+    y_tr_s[:, :, 0] = output_scaler.transform(y_tr_flat).reshape(data_input['y_tr'].shape[0], data_input['y_tr'].shape[1])
+    y_vl_s[:, :, 0] = output_scaler.transform(y_vl_flat).reshape(data_input['y_vl'].shape[0], data_input['y_vl'].shape[1])
+    y_ts_s[:, :, 0] = output_scaler.transform(y_ts_flat).reshape(data_input['y_ts'].shape[0], data_input['y_ts'].shape[1])
+    
+    # Construimos el diccionario de datos escalados
+    data_scaled = {
+        'x_tr_s': x_tr_s, 'y_tr_s': y_tr_s,
+        'x_vl_s': x_vl_s, 'y_vl_s': y_vl_s,
+        'x_ts_s': x_ts_s, 'y_ts_s': y_ts_s,        
+    }
+        
+    return data_scaled, output_scaler
 
 # Deffinimos la función de pérdida RMSE personalizada
 def root_mean_squared_error(y_pred, y_true):
@@ -193,12 +296,30 @@ def accuracy_threshold(y_pred, y_true, threshold=0.1):
     return accuracy
 
 
-def eval_rmse(model, x, y):
-    model.eval()
+def eval_rmse(mse_loss, model, x, y):
+    # Obtener el dispositivo del modelo
+    device = next(model.parameters()).device
+    
+    # Asegurar que los tensores estén en el mismo dispositivo que el modelo
+    x = x.to(device)
+    y = y.to(device)
+    
+    model.eval()  # Poner el modelo en modo evaluación
     with torch.no_grad():
         pred = model(x)
+        
+        # Comprobar y ajustar dimensiones
+        if pred.shape != y.shape:
+            # Si la predicción es [N, 1, 4] y el objetivo es [N, 4, 1]
+            if pred.shape[1] == 1 and y.shape[2] == 1:
+                # Podemos transponer las dimensiones internas
+                pred = pred.transpose(1, 2)
+            # O alternativamente, podemos reformatear el objetivo
+            # y = y.view(y.size(0), 1, -1)
+        
         mse = mse_loss(pred, y)
         rmse = torch.sqrt(mse)
+    
     return rmse.item()
 
 
@@ -216,7 +337,7 @@ def predictions(x, model, scaler, device=None):
     Salida:
     - y_pred: la predicción en la escala original (tamaño: BATCHES X OUTPUT_LENGTH)
     '''
-    # Si no se especifica dispositivo, usar CPU
+    '''# Si no se especifica dispositivo, usar CPU    
     if device is None:
         device = torch.device('cpu')
     
@@ -244,5 +365,40 @@ def predictions(x, model, scaler, device=None):
         
         # Restaurar la forma original si es necesario
         y_pred = y_pred_inverse.reshape(original_shape)
+    
+    return y_pred.flatten()'
+    '''
+    # Determinar automáticamente el dispositivo del modelo si no se especifica
+    if device is None:
+        device = next(model.parameters()).device
+    
+    # Convertir a tensor y mover al dispositivo correcto
+    if not isinstance(x, torch.Tensor):
+        x = torch.tensor(x, dtype=torch.float32).to(device)
+    else:
+        x = x.to(device)
+    
+    # Modo evaluación
+    model.eval()
+    with torch.no_grad():
+        # Calcular predicción
+        y_pred_s = model(x)
+        
+        # Traer de vuelta a CPU para procesamiento
+        y_pred_s = y_pred_s.cpu().numpy()
+        
+        # Reshape para el escalador si es necesario
+        original_shape = y_pred_s.shape
+        if len(original_shape) > 2:
+            y_pred_s_reshaped = y_pred_s.reshape(-1, original_shape[-1])
+        else:
+            y_pred_s_reshaped = y_pred_s
+        
+        # Invertir la escala
+        y_pred = scaler.inverse_transform(y_pred_s_reshaped)
+        
+        # Restaurar forma si fue modificada
+        if len(original_shape) > 2:
+            y_pred = y_pred.reshape(original_shape)
     
     return y_pred.flatten()
