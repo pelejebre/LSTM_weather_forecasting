@@ -35,6 +35,11 @@ El proyecto está organizado en la siguiente estructura de carpetas y archivos:
 
 └── 02_LSTM_univariado_unistep.ipynb
 
+└── 03.LSTM_univariado_multistep.ipynb
+
+└── 04.LSTM_multivariado_unistep.ipynb
+
+
 ### Descripción de Archivos y Carpetas
 
 1. **`helpers/`**
@@ -59,6 +64,16 @@ pip install -r requirements.txt
    • Implementa un modelo LSTM para una predicción univariable (Temperatura) con predicción unipaso (1 hora después)
    ![Modelo](images/Diagrama_univariable_unistep.png "Modelo univariable y unistep")
 
+5. **`03.LSTM_univariado_multistep.ipynb`**
+   
+   • Implementa un modelo LSTM para una predicción univariable (Temperatura) con predicción multipaso (4 hora después)
+    ![Modelo](images/Diagrama_univariable_multistep.png "Modelo univariable y unistep")
+
+6. **`04.LSTM_multivariado_unistep.ipynb`**
+   
+   • Implementa un modelo LSTM para una predicción multivariable (Temperatura) con predicción unipaso (1 hora después)
+    ![Modelo](images/Diagrama_multivariable_unistep.png "Modelo univariable y unistep")
+   
 
 ## 📊 Datos Utilizados
 
